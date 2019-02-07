@@ -1,0 +1,3 @@
+configobj -> conda install configobj
+atom -> conda install atom
+PyPubSub -> pip install PyPubSub
