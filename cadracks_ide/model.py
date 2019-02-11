@@ -32,20 +32,14 @@ class Model(Atom):
         self.notify("root_folder_changed", None)
 
     def set_selected(self, selected):
+        r"""Defines which item is selected in the tree view
+
+        Parameters
+        ----------
+        selected
+
+        """
         logger.debug("Setting the selected item")
         self.selected = selected
         logger.debug("Notify that selected item changed")
         self.notify("selected_changed", None)
-
-    # def set_code(self, code):
-    #     r"""Set the code
-    #
-    #     Parameters
-    #     ----------
-    #     code : str
-    #
-    #     """
-    #     logger.debug("Setting the code")
-    #     self.code = code
-    #     logger.debug("Notify that code_changed")
-    #     self.notify("code_changed", None)

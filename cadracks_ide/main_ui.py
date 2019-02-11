@@ -109,11 +109,11 @@ class CadracksIdeFrame(wx.Frame):
                         text_height=self.text_height,
                         text_colour=self.text_colour)
         self.code_panel = CodePanel(self, self.model)
-        self.graph_panel = GraphPanel(self, self.model,
-                                      viewer_background_color=self.viewer_background_colour,
-                                      object_transparency=self.objects_transparency,
-                                      text_height=self.text_height,
-                                      text_colour=self.text_colour)
+        # self.graph_panel = GraphPanel(self, self.model,
+        #                               viewer_background_color=self.viewer_background_colour,
+        #                               object_transparency=self.objects_transparency,
+        #                               text_height=self.text_height,
+        #                               text_colour=self.text_colour)
         # self.tree_panel = Tree(self, self.model, root_directory=self.project_default_dir)
         self.tree_panel = Tree(self, self.model)
 
@@ -128,10 +128,10 @@ class CadracksIdeFrame(wx.Frame):
                           wx.lib.agw.aui.AuiPaneInfo().Right().
                           Name(CadracksIdeFrame.PANE_3D_NAME).Caption("3D").
                           MinSize(wx.Size(400, 200)).MaximizeButton(True).Resizable(True))
-        self._mgr.AddPane(self.graph_panel,
-                          wx.lib.agw.aui.AuiPaneInfo().Right().
-                          Name(CadracksIdeFrame.PANE_GRAPH_NAME).Caption("Graph").
-                          MinSize(wx.Size(400, 100)).MaximizeButton(True).Resizable(True))
+        # self._mgr.AddPane(self.graph_panel,
+        #                   wx.lib.agw.aui.AuiPaneInfo().Right().
+        #                   Name(CadracksIdeFrame.PANE_GRAPH_NAME).Caption("Graph").
+        #                   MinSize(wx.Size(400, 100)).MaximizeButton(True).Resizable(True))
         self._mgr.AddPane(self.tree_panel,
                           wx.lib.agw.aui.AuiPaneInfo().Left().
                           Name(CadracksIdeFrame.PANE_TREE_NAME).Caption("Tree").
