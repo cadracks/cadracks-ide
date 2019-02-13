@@ -32,29 +32,47 @@ from cadracks_ide.sequences import color_from_sequence
 
 logger = logging.getLogger(__name__)
 
+# Hack to workaround issue #629 of PythonOCC
+extra_info = {}
 
-def compute_bbox(shp, *kwargs):
 
-    message = []
+def display_extra_info(shp, *kwargs):
+    r"""Display extra info (properties) about a shape
 
-    message.append("Compute bbox for %s " % shp)
+    The message box is triggered by a shape selection in the viewer
+
+    Parameters
+    ----------
+    shp : list
+        List of selected shapes
+    kwargs : dict
+
+    """
+
     for shape in shp:
+        message = ["%s" % shp, ""]
+
         bbox = Bnd_Box()
         brepbndlib_Add(shape, bbox)
         xmin, ymin, zmin, xmax, ymax, zmax = bbox.Get()
         dx = xmax - xmin
         dy = ymax - ymin
         dz = zmax - zmin
-        message.append("Selected shape bounding box :")
-        message.append( "  dx=%f, dy=%f, dz=%f." % (dx, dy, dz))
+        message.append("Bounding box :")
+        message.append("  dx=%f, dy=%f, dz=%f." % (dx, dy, dz))
         message.append("Bounding box center :")
-        message.append("x=%f, y=%f, z=%f" % (xmin + dx/2., ymin + dy/2., zmin + dz/2.))
-        box = wx.MessageBox("\n".join(message),
-                            caption="Part Info",
-                            style=wx.OK | wx.ICON_INFORMATION)
-        # for prop_name, prop_value in shape.properties.items():
-        #     message.append("** Prop : %s **" % prop_name)
-        #     message.append(str(prop_value))
+        message.append("  x=%f, y=%f, z=%f" % (xmin + dx/2., ymin + dy/2., zmin + dz/2.))
+
+        message.append("")
+
+        for prop_name, prop_value in extra_info[shape].items():
+            message.append(" %s : %s %s" % (prop_name,
+                                            str(prop_value["value"]),
+                                            "[" + prop_value["unit"] + "]" if prop_value["unit"] is not None else ""))
+
+        _ = wx.MessageBox("\n".join(message),
+                          caption="Part Info",
+                          style=wx.OK | wx.ICON_INFORMATION)
 
 
 class ThreeDPanel(Wx3dViewer):
@@ -78,7 +96,7 @@ class ThreeDPanel(Wx3dViewer):
         self.text_height = text_height
         self.text_colour = text_colour
 
-        self.viewer_display.register_select_callback(compute_bbox)
+        self.viewer_display.register_select_callback(display_extra_info)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
@@ -328,9 +346,14 @@ class ThreeDPanel(Wx3dViewer):
             # by default, always use the same color to view a part
             color_255 = (102, 0, 102)
 
-        self.display_shape(part.transformed_shape,
+        # Assignation required to get the shape id, not the Python property id.
+        transformed_shape = part.transformed_shape
+
+        self.display_shape(transformed_shape,
                            color_=colour_wx_to_occ(color_255),
                            transparency=transparency)
+
+        extra_info[transformed_shape] = part.properties
 
         for anchor_name, anchor in part.transformed_anchors.items():
             self.display_vector(gp_Vec(float(anchor.u[0]),
