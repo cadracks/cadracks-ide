@@ -1,4 +1,6 @@
-Adapt to cadracks-core
+******** Adapt to cadracks-core
+
+Remettre graph display quand géré par cadracks_core
 
 Todo UI
 -------

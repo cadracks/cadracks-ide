@@ -9,8 +9,10 @@ from os.path import splitext, isfile
 import wx
 import wx.stc
 
-from corelib.core.files import p_, is_binary
+from corelib.core.files import is_binary
 from corelib.core.python_ import is_valid_python
+
+from cadracks_ide.utils import path_to_file
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ class CodePanel(wx.Panel):
         # when a modification has been made for an editable file
         self.save_button.Disable()
 
-        bmp = wx.Image(p_(__file__, 'icons/save.png'),
+        bmp = wx.Image(path_to_file(__file__, 'icons/save.png'),
                        wx.BITMAP_TYPE_PNG).Scale(24, 24).ConvertToBitmap()
         self.save_button.SetBitmap(bmp, wx.LEFT)
         self.Bind(wx.EVT_BUTTON,

@@ -14,7 +14,7 @@ import wx.aui
 import wx.lib.agw.aui
 from wx.adv import AboutDialogInfo, AboutBox
 
-from corelib.core.files import p_
+from cadracks_ide.utils import path_to_file
 
 import cadracks_ide
 from cadracks_ide.model import Model
@@ -65,7 +65,8 @@ class CadracksIdeFrame(wx.Frame):
             self.Show()
 
         # Application icon
-        ico = p_(__file__, "./cadracks-ide.ico")
+        ico = path_to_file(__file__, "cadracks-ide.ico")
+
         self.SetIcon(wx.Icon(wx.IconLocation(filename=ico, num=0)))
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -176,7 +177,8 @@ class CadracksIdeFrame(wx.Frame):
                            id_=wx.ID_OPEN,
                            text='&Open\tCtrl+O',
                            handler=self.on_open,
-                           icon=p_(__file__, './icons/open.png'),
+                           # icon=p_(__file__, './icons/open.png'),
+                           icon=path_to_file(__file__, "icons/open.png"),
                            enabled=True)
 
         file_menu.AppendSeparator()
@@ -185,7 +187,8 @@ class CadracksIdeFrame(wx.Frame):
                            id_=wx.ID_CLOSE,
                            text='&Quit\tCtrl+Q',
                            handler=self.on_quit,
-                           icon=p_(__file__, './icons/quit.png'))
+                           # icon=p_(__file__, './icons/quit.png'))
+                           icon = path_to_file(__file__, 'icons/quit.png'))
         menubar.Append(file_menu, '&File')
 
         # Windows menu
@@ -202,7 +205,8 @@ class CadracksIdeFrame(wx.Frame):
                            id_=wx.NewId(),
                            text="Refresh",
                            handler=self.on_refresh,
-                           icon=p_(__file__, './icons/refresh.png'))
+                           # icon=p_(__file__, './icons/refresh.png'))
+                           icon = path_to_file(__file__, 'icons/refresh.png'))
         menubar.Append(refresh_menu, "&Refresh")
 
         # Help menu
@@ -351,7 +355,8 @@ def get_config():
     configobj.ConfigObj or None
 
     """
-    inifile = p_(__file__, "./cadracks-ide.ini")
+    inifile = path_to_file(__file__, "cadracks-ide.ini")
+
     if not exists(inifile):
         logger.warning("No cadracks-ide.ini, using default values")
         return None

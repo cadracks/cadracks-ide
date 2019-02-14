@@ -9,11 +9,13 @@ from os.path import exists, isdir, normpath, join, basename
 
 import wx
 import wx.lib.agw.customtreectrl
-from wx.lib.pubsub import pub
+# from wx.lib.pubsub import pub
+from pubsub import pub
 
-from corelib.core.files import p_
+# from corelib.core.files import p_
 
 from cadracks_ide.utils import get_file_extension
+from cadracks_ide.utils import path_to_file
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +69,14 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
         self.disabled_extensions = disabled_extensions
         self.excluded_extensions = excluded_extensions
 
-        self.add_icon(p_(__file__, './icons/folder.png'),
+        self.add_icon(path_to_file(__file__, 'icons/folder.png'),
                       wx.BITMAP_TYPE_PNG,
                       'FOLDER')
-        self.add_icon(p_(__file__, './icons/python_icon.png'),
+        self.add_icon(path_to_file(__file__, 'icons/python_icon.png'),
                       wx.BITMAP_TYPE_PNG,
                       'python')
         # set default image
-        self.add_icon(p_(__file__, './icons/file_icon.png'),
+        self.add_icon(path_to_file(__file__, 'icons/file_icon.png'),
                       wx.BITMAP_TYPE_PNG,
                       'default')
 

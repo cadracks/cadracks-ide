@@ -115,6 +115,8 @@ class ThreeDPanel(Wx3dViewer):
 
         sel = self.model.selected
 
+        logger.debug("sel : %s" % sel)
+
         if not isdir(sel):
             # what extension ?
             ext = splitext(sel)[1].lower()
