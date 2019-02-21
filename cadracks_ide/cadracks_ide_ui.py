@@ -43,12 +43,12 @@ class CadracksIdeFrame(wx.Frame):
 
     PANE_CODE_NAME = "Code"
     PANE_3D_NAME = "3d"
-    PANE_GRAPH_NAME = "Graph"
+    # PANE_GRAPH_NAME = "Graph"
     PANE_TREE_NAME = "Tree"
     PANE_LOG_NAME = "Log"
     PANES = [PANE_CODE_NAME,
              PANE_3D_NAME,
-             PANE_GRAPH_NAME,
+             # PANE_GRAPH_NAME,
              PANE_TREE_NAME,
              PANE_LOG_NAME]
 
@@ -206,7 +206,7 @@ class CadracksIdeFrame(wx.Frame):
                            text="Refresh",
                            handler=self.on_refresh,
                            # icon=p_(__file__, './icons/refresh.png'))
-                           icon = path_to_file(__file__, 'icons/refresh.png'))
+                           icon=path_to_file(__file__, 'icons/refresh.png'))
         menubar.Append(refresh_menu, "&Refresh")
 
         # Help menu
@@ -252,7 +252,7 @@ class CadracksIdeFrame(wx.Frame):
 
     def on_refresh(self, event):
         r"""Refresh handler"""
-        with wx.BusyInfo("Refreshing ...") as busy_info:
+        with wx.BusyInfo("Refreshing ...") as _:
             pass
 
     def on_window_show(self, event):

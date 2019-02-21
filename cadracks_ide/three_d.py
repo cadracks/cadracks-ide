@@ -128,62 +128,70 @@ class ThreeDPanel(Wx3dViewer):
                     content = f.read()
 
                 if is_valid_python(content) is True:
-                    with wx.BusyInfo("Loading Python defined geometry ...") as _:
+                    busy_info = wx.BusyInfo("Loading Python defined geometry ...")
+                    try:
                         module_ = imp.load_source(sel, sel)
-                    has_shape = hasattr(module_, "__shape__")
-                    has_shapes = hasattr(module_, "__shapes__")
-                    has_anchors = hasattr(module_, "__anchors__")
-                    has_properties = hasattr(module_, "__properties__")
-                    has_assembly = hasattr(module_, "__assembly__")
-                    has_assemblies = hasattr(module_, "__assemblies__")
 
-                    self.erase_all()
+                        has_shape = hasattr(module_, "__shape__")
+                        has_shapes = hasattr(module_, "__shapes__")
+                        has_anchors = hasattr(module_, "__anchors__")
+                        has_properties = hasattr(module_, "__properties__")
+                        has_assembly = hasattr(module_, "__assembly__")
+                        has_assemblies = hasattr(module_, "__assemblies__")
 
-                    if has_shapes is True:
-                        logger.info("%s has shapeS" % sel)
-                        for i, shape in enumerate(module_.__shapes__):
-                            self.display_shape(
-                                shape,
-                                color_=colour_wx_to_occ(
-                                    color_from_sequence(i, "colors")))
-
-                    elif has_assembly is True:
-                        logger.info("%s has assembly" % sel)
-                        try:
-                            self.display_assembly(module_.__assembly__)
-                            self.viewer_display.FitAll()
-                        except KeyError as ke:
-                            self.erase_all()
-                            logger.exception(ke)
-
-                    elif has_assemblies is True:
-                        logger.info("%s has assemblies" % sel)
-                        try:
-                            self.display_assemblies(module_.__assemblies__)
-                            self.viewer_display.FitAll()
-                        except KeyError as ke:
-                            self.erase_all()
-                            logger.exception(ke)
-                    # elif has_shape is True and has_anchors is True:
-                    elif has_shape is True:
-                        if has_anchors is False:
-                            logger.info("%s has shape" % sel)
-                            self.display_shape(module_.__shape__)
-                        else:
-                            logger.info("%s has shape and anchors" % sel)
-                            p = anchorable_part_from_py_script(sel)
-                            self.display_part(p)
-                        self.viewer_display.FitAll()
-                    else:
                         self.erase_all()
-                        logger.warning("Nothing to display")
+
+                        if has_shapes is True:
+                            logger.info("%s has shapeS" % sel)
+                            for i, shape in enumerate(module_.__shapes__):
+                                self.display_shape(
+                                    shape,
+                                    color_=colour_wx_to_occ(
+                                        color_from_sequence(i, "colors")))
+
+                        elif has_assembly is True:
+                            logger.info("%s has assembly" % sel)
+                            try:
+                                self.display_assembly(module_.__assembly__)
+                                self.viewer_display.FitAll()
+                            except KeyError as ke:
+                                self.erase_all()
+                                logger.exception(ke)
+
+                        elif has_assemblies is True:
+                            logger.info("%s has assemblies" % sel)
+                            try:
+                                self.display_assemblies(module_.__assemblies__)
+                                self.viewer_display.FitAll()
+                            except KeyError as ke:
+                                self.erase_all()
+                                logger.exception(ke)
+                        # elif has_shape is True and has_anchors is True:
+                        elif has_shape is True:
+                            if has_anchors is False:
+                                logger.info("%s has shape" % sel)
+                                self.display_shape(module_.__shape__)
+                            else:
+                                logger.info("%s has shape and anchors" % sel)
+                                p = anchorable_part_from_py_script(sel)
+                                self.display_part(p)
+                            self.viewer_display.FitAll()
+                        else:
+                            self.erase_all()
+                            logger.warning("Nothing to display")
+                    except Exception as e:
+                        logger.error(str(e))
+                    finally:
+                        del busy_info
+                        self.erase_all()
                 else:  # the file is not a valid Python file
                     logger.warning("Not a valid python file")
                     self.erase_all()
 
             elif ext in [".step", ".stp"]:
                 self.erase_all()
-                with wx.BusyInfo("Loading STEP ...") as _:
+                busy_info = wx.BusyInfo("Loading STEP ...")
+                try:
                     shapes = StepImporter(sel).shapes
                     logger.info("%i shapes in %s" % (len(shapes), sel))
                     for shape in shapes:
@@ -192,10 +200,15 @@ class ThreeDPanel(Wx3dViewer):
                                            color_=colour_wx_to_occ(color_255),
                                            transparency=0.1)
                         self.viewer_display.FitAll()
+                except Exception as e:
+                    logger.error(str(e))
+                finally:
+                    del busy_info
 
             elif ext in [".iges", ".igs"]:
                 self.erase_all()
-                with wx.BusyInfo("Loading IGES ...") as _:
+                busy_info = wx.BusyInfo("Loading IGES ...")
+                try:
                     shapes = IgesImporter(sel).shapes
                     logger.info("%i shapes in %s" % (len(shapes), sel))
                     for shape in shapes:
@@ -204,16 +217,25 @@ class ThreeDPanel(Wx3dViewer):
                                            color_=colour_wx_to_occ(color_255),
                                            transparency=0.1)
                         self.viewer_display.FitAll()
+                except Exception as e:
+                    logger.error(str(e))
+                finally:
+                    del busy_info
 
             elif ext == ".stl":
                 self.erase_all()
-                with wx.BusyInfo("Loading STL ...") as _:
+                busy_info = wx.BusyInfo("Loading STL ...")
+                try:
                     shape = StlImporter(sel).shape
                     color_255 = (0, 255, 0)
                     self.display_shape(shape,
                                        color_=colour_wx_to_occ(color_255),
                                        transparency=0.1)
                     self.viewer_display.FitAll()
+                except Exception as e:
+                    logger.error(str(e))
+                finally:
+                    del busy_info
 
             elif ext == ".json":  # parts library
                 self.erase_all()
@@ -225,8 +247,8 @@ class ThreeDPanel(Wx3dViewer):
                         is_library_file = True
 
                 if is_library_file is True:
-
-                    with wx.BusyInfo("Loading parts library ...") as _:
+                    busy_info = wx.BusyInfo("Loading parts library ...")
+                    try:
                         with open(sel) as json_file:
                             json_file_content = json.load(json_file)
                             # print(json_file_content["data"].keys())
@@ -279,12 +301,21 @@ class ThreeDPanel(Wx3dViewer):
                                                      message_color=(1, 1, 1),
                                                      height=20)
                                 self.viewer_display.FitAll()
+                    except Exception as e:
+                        logger.error(str(e))
+                    finally:
+                        del busy_info
             elif ext == ".stepzip":
                 self.erase_all()
-                with wx.BusyInfo("Loading STEPZIP ...") as _:
+                busy_info = wx.BusyInfo("Loading STEPZIP ...")
+                try:
                     self.display_part(anchorable_part_from_stepzip(sel),
                                       transparency=0.2)
                     self.viewer_display.FitAll()
+                except Exception as e:
+                    logger.error(str(e))
+                finally:
+                    del busy_info
             else:
                 logger.error("File has an extension %s that is not "
                              "handled by the 3D panel" % ext)
@@ -332,7 +363,8 @@ class ThreeDPanel(Wx3dViewer):
                      part,
                      color_255=None,
                      transparency=0.,
-                     anchor_names_height=10.):
+                     anchor_names_height=10.,
+                     scale_anchors=1.):
         r"""Display a single Part (shape + anchors)
 
         Parameters
@@ -358,16 +390,16 @@ class ThreeDPanel(Wx3dViewer):
         extra_info[transformed_shape] = part.properties
 
         for anchor_name, anchor in part.transformed_anchors.items():
-            self.display_vector(gp_Vec(float(anchor.u[0]),
-                                       float(anchor.u[1]),
-                                       float(anchor.u[2])),
+            self.display_vector(gp_Vec(float(anchor.u[0] * scale_anchors),
+                                       float(anchor.u[1] * scale_anchors),
+                                       float(anchor.u[2] * scale_anchors)),
                                 gp_Pnt(float(anchor.p[0]),
                                        float(anchor.p[1]),
                                        float(anchor.p[2])))
 
-            self.display_vector(gp_Vec(float(anchor.v[0]),
-                                       float(anchor.v[1]),
-                                       float(anchor.v[2])),
+            self.display_vector(gp_Vec(float(anchor.v[0] * scale_anchors),
+                                       float(anchor.v[1] * scale_anchors),
+                                       float(anchor.v[2] * scale_anchors)),
                                 gp_Pnt(float(anchor.p[0]),
                                        float(anchor.p[1]),
                                        float(anchor.p[2])))
