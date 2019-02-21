@@ -183,7 +183,6 @@ class ThreeDPanel(Wx3dViewer):
                         logger.error(str(e))
                     finally:
                         del busy_info
-                        self.erase_all()
                 else:  # the file is not a valid Python file
                     logger.warning("Not a valid python file")
                     self.erase_all()
