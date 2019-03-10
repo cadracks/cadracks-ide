@@ -56,7 +56,7 @@ setup(
                   'cadracks_ide/icons/refresh.png',
                   'cadracks_ide/icons/save.png']),
                 ('cadracks_ide',
-                 ['cadracks_ide/cadracks_core.ico',
+                 ['cadracks_ide/cadracks-ide.ico',
                   'cadracks_ide/cadracks-ide.ini'])],
     entry_points={},
     scripts=['bin/cadracks-ide']
