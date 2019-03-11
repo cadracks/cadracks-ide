@@ -21,7 +21,7 @@ from cadracks_ide.model import Model
 
 from cadracks_ide.three_d import ThreeDPanel
 from cadracks_ide.code import CodePanel
-from cadracks_ide.graph import GraphPanel
+# from cadracks_ide.graph import GraphPanel
 from cadracks_ide.tree import Tree
 from corelib.ui.wx_.log import LogPanel
 
@@ -395,4 +395,11 @@ def main(width=1200, height=800):
 
 
 if __name__ == '__main__':
+    fh = logging.FileHandler('cadracks-ide.log')
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s :: %(levelname)8s :: '
+                                  '%(name)35s :: %(message)s')
+    fh.setFormatter(formatter)
+    main_logger = logging.getLogger()
+    main_logger.addHandler(fh)
     main()

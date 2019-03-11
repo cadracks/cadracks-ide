@@ -44,6 +44,12 @@ class CodePanel(wx.Panel):
                   self.on_save_button,
                   self.save_button)
 
+        # Save with ctrl + S
+        randomId = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.on_ctrl_s, id=randomId)
+        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL, ord('S'), randomId)])
+        self.SetAcceleratorTable(accel_tbl)
+
         # # Sizers
         # controls_panel_sizer = wx.BoxSizer()
         # controls_panel_sizer.Add(self.save_button,
@@ -63,6 +69,10 @@ class CodePanel(wx.Panel):
 
     def on_save_button(self, evt):
         r"""Callback for a click on the 'save parameters' button"""
+        self.save_()
+
+    def on_ctrl_s(self, evt):
+        r"""Callback for a CTRL + S key combination"""
         self.save_()
 
     def save_(self):
