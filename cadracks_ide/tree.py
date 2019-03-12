@@ -4,8 +4,9 @@
 r"""Tree widget"""
 
 import logging
-from os import listdir
-from os.path import exists, isdir, normpath, join, basename
+from os import listdir, remove, makedirs, rename
+from os.path import exists, isdir, normpath, join, basename, dirname, isfile
+from pathlib import Path
 
 import wx
 import wx.lib.agw.customtreectrl
@@ -31,7 +32,7 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
                  disabled_extensions=None,
                  excluded_extensions=None,
                  agw_style=wx.TR_DEFAULT_STYLE,
-                 context_menu=False):
+                 context_menu=True):
 
         wx.lib.agw.customtreectrl.CustomTreeCtrl.__init__(self,
                                                           parent,
@@ -89,6 +90,86 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
         #     root_directory = getcwd()
         # self.model.set_root_folder(root_directory)
         # self.root_directory = root_directory
+
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnEvtTreeItemRightClick)
+
+        self.right_click_location = None
+
+    def OnEvtTreeItemRightClick(self, evt):
+
+        if self.context_menu is False:
+            return
+
+        self.right_click_location = self.GetPyData(evt.GetItem())
+
+        logger.debug("OnEvtTreeItemRightClick:   %s" % self.right_click_location)
+        menu = wx.Menu()
+
+        if isdir(self.right_click_location):
+            new_file_menu_item = menu.Append(1000, "New file")
+            new_folder_menu_item = menu.Append(1001, "New folder")
+            rename_menu_item = menu.Append(1002, "Rename")
+            delete_menu_item = menu.Append(1003, "Delete")
+            self.Bind(wx.EVT_MENU, self.new_file, new_file_menu_item)
+            self.Bind(wx.EVT_MENU, self.new_folder, new_folder_menu_item)
+            self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
+            self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
+        elif isfile(self.right_click_location):
+            rename_menu_item = menu.Append(1002, "Rename")
+            delete_menu_item = menu.Append(1003, "Delete")
+            self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
+            self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
+        else:
+            raise ValueError
+
+        self.PopupMenu(menu, evt.GetPoint())
+        menu.Destroy()
+        # TODO : auto update of tree display after modifications
+
+    def new_file(self, evt):
+        # TODO : new file extension choice dialog
+        if isdir(self.right_click_location):
+            Path(join(self.right_click_location, 'new_file.py')).touch()
+        else:
+            raise ValueError
+
+    def new_folder(self, evt):
+        if isdir(self.right_click_location):
+            makedirs(join(self.right_click_location, "new_folder"))
+        else:
+            raise ValueError
+
+    def rename(self, evt):
+        if self.selected_item is not None:
+            self.EditLabel(self.selected_item)
+
+        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndLabelEdit)
+
+    def OnEndLabelEdit(self, evt):
+        """At the end of GenericTreeItem label editing"""
+        item_label_value = self.GetEditControl().GetValue()
+        new_path = join(dirname(self.GetPyData(self.selected_item)),
+                        item_label_value)
+
+        # Rename the folder on disk
+        rename(self.GetPyData(self.selected_item), new_path)
+
+        # Keep the item data in sync with the new name
+        self.SetPyData(self.selected_item, new_path)
+
+        # Make sure the children also keep in sync with the new name
+        self.selected_item.DeleteChildren(self)
+        self._load_dir(self.selected_item, new_path)
+
+    def delete(self, evt):
+        # TODO : delete confirmation dialog
+        if isfile(self.right_click_location):
+            remove(self.right_click_location)
+        elif isdir(self.right_click_location):
+            from shutil import rmtree
+            rmtree(self.right_click_location)
+        else:
+            raise ValueError
 
     def on_root_folder_changed(self, evt):
         r"""Callback for a change of root folder"""
