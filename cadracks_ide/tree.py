@@ -91,56 +91,126 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
         # self.model.set_root_folder(root_directory)
         # self.root_directory = root_directory
 
-        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnEvtTreeItemRightClick)
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,
+                  self.on_evt_tree_item_right_click)
 
+        # Store the path corresponding to a right click in the tree
         self.right_click_location = None
 
-    def OnEvtTreeItemRightClick(self, evt):
+    def on_evt_tree_item_right_click(self, evt):
+        r"""Callback for a right click on a tree item
 
+        Parameters
+        ----------
+        evt : wx.lib.agw.customtreectrl.TreeEvent object
+
+        """
         if self.context_menu is False:
             return
-
-        self.right_click_location = self.GetPyData(evt.GetItem())
-
-        logger.debug("OnEvtTreeItemRightClick:   %s" % self.right_click_location)
-        menu = wx.Menu()
-
-        if isdir(self.right_click_location):
-            new_file_menu_item = menu.Append(1000, "New file")
-            new_folder_menu_item = menu.Append(1001, "New folder")
-            rename_menu_item = menu.Append(1002, "Rename")
-            delete_menu_item = menu.Append(1003, "Delete")
-            self.Bind(wx.EVT_MENU, self.new_file, new_file_menu_item)
-            self.Bind(wx.EVT_MENU, self.new_folder, new_folder_menu_item)
-            self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
-            self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
-        elif isfile(self.right_click_location):
-            rename_menu_item = menu.Append(1002, "Rename")
-            delete_menu_item = menu.Append(1003, "Delete")
-            self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
-            self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
         else:
-            raise ValueError
+            self.right_click_location = self.GetPyData(evt.GetItem())
 
-        self.PopupMenu(menu, evt.GetPoint())
-        menu.Destroy()
-        # TODO : auto update of tree display after modifications
+            menu = wx.Menu()
+
+            if isdir(self.right_click_location):
+                # A folder can receiver a new subfolder or a new file
+                # It can also be renamed or deleted
+                new_file_menu_item = menu.Append(wx.ID_ANY, "New file")
+                new_folder_menu_item = menu.Append(wx.ID_ANY, "New folder")
+                menu.Append(wx.ID_SEPARATOR)
+                rename_menu_item = menu.Append(wx.ID_ANY, "Rename")
+                delete_menu_item = menu.Append(wx.ID_ANY, "Delete")
+                self.Bind(wx.EVT_MENU, self.new_file, new_file_menu_item)
+                self.Bind(wx.EVT_MENU, self.new_folder, new_folder_menu_item)
+                self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
+                self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
+            elif isfile(self.right_click_location):
+                # A file can be renamed or deleted
+                rename_menu_item = menu.Append(wx.ID_ANY, "Rename")
+                delete_menu_item = menu.Append(wx.ID_ANY, "Delete")
+                self.Bind(wx.EVT_MENU, self.rename, rename_menu_item)
+                self.Bind(wx.EVT_MENU, self.delete, delete_menu_item)
+            else:
+                raise ValueError
+
+            self.PopupMenu(menu, evt.GetPoint())
+            menu.Destroy()
+            # auto update of tree display after modifications
+
 
     def new_file(self, evt):
-        # TODO : new file extension choice dialog
-        if isdir(self.right_click_location):
-            Path(join(self.right_click_location, 'new_file.py')).touch()
-        else:
-            raise ValueError
+        r"""Callback for a click on 'new file' in the context menu
+
+        Parameters
+        ----------
+        evt : wx._core.CommandEvent
+
+        """
+        filename_dialog = wx.TextEntryDialog(self,
+                                             "New file name (with extension)",
+                                             "New file")
+
+        if filename_dialog.ShowModal() == wx.ID_OK:
+            new_file_path = join(self.right_click_location,
+                                 filename_dialog.GetValue())
+            if isfile(new_file_path):
+                duplicate_file_error_dialog = \
+                    wx.MessageDialog(self,
+                                     "Duplicate file name",
+                                     caption="Duplicate file name",
+                                     style=wx.OK | wx.CENTRE | wx.ICON_ERROR)
+                duplicate_file_error_dialog.ShowModal()
+                duplicate_file_error_dialog.Destroy()
+            else:
+                if isdir(self.right_click_location):
+                    Path(new_file_path).touch()
+                else:
+                    raise ValueError
+        filename_dialog.Destroy()
+        self.set_root_dir(self.model.root_folder)
 
     def new_folder(self, evt):
-        if isdir(self.right_click_location):
-            makedirs(join(self.right_click_location, "new_folder"))
-        else:
-            raise ValueError
+        r"""Callback for a click on 'new folder' in the context menu
+
+        Parameters
+        ----------
+        evt : wx._core.CommandEvent
+
+        """
+        foldername_dialog = wx.TextEntryDialog(self,
+                                               "New folder name",
+                                               "New folder")
+
+        if foldername_dialog.ShowModal() == wx.ID_OK:
+            new_folder_path = join(self.right_click_location,
+                                   foldername_dialog.GetValue())
+            if isdir(new_folder_path):
+                duplicate_folder_error_dialog = \
+                    wx.MessageDialog(self,
+                                     "Duplicate folder name",
+                                     caption="Duplicate folder name",
+                                     style=wx.OK | wx.CENTRE | wx.ICON_ERROR)
+                duplicate_folder_error_dialog.ShowModal()
+                duplicate_folder_error_dialog.Destroy()
+            else:
+                if isdir(self.right_click_location):
+                    makedirs(new_folder_path)
+                else:
+                    raise ValueError
+        foldername_dialog.Destroy()
+        self.set_root_dir(self.model.root_folder)
 
     def rename(self, evt):
+        r"""Callback for a click on 'rename' in the context menu.
+        The renaming may target a file or a folder
+
+        Parameters
+        ----------
+        evt : wx._core.CommandEvent
+
+        """
         if self.selected_item is not None:
+            self.initial_item_value = self.selected_item.GetText()
             self.EditLabel(self.selected_item)
 
         self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndLabelEdit)
@@ -151,25 +221,56 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
         new_path = join(dirname(self.GetPyData(self.selected_item)),
                         item_label_value)
 
-        # Rename the folder on disk
-        rename(self.GetPyData(self.selected_item), new_path)
+        if exists(new_path):
 
-        # Keep the item data in sync with the new name
-        self.SetPyData(self.selected_item, new_path)
+            duplicate_name_error_dialog = \
+                wx.MessageDialog(self,
+                                 "Renaming to an existing name",
+                                 caption="Duplicate name",
+                                 style=wx.OK | wx.CENTRE | wx.ICON_ERROR)
+            duplicate_name_error_dialog.ShowModal()
+            self.SetItemText(self.selected_item, self.initial_item_value)
 
-        # Make sure the children also keep in sync with the new name
-        self.selected_item.DeleteChildren(self)
-        self._load_dir(self.selected_item, new_path)
+        else:
+            # Rename the folder on disk
+            rename(self.GetPyData(self.selected_item), new_path)
+
+            # Keep the item data in sync with the new name
+            self.SetPyData(self.selected_item, new_path)
+
+            # if isdir(new_path):
+            # Make sure the children also keep in sync with the new name
+            self.selected_item.DeleteChildren(self)
+            self._load_dir(self.selected_item, new_path)
+
+        # self.set_root_dir(self.model.root_folder)
 
     def delete(self, evt):
-        # TODO : delete confirmation dialog
-        if isfile(self.right_click_location):
-            remove(self.right_click_location)
-        elif isdir(self.right_click_location):
-            from shutil import rmtree
-            rmtree(self.right_click_location)
-        else:
-            raise ValueError
+        r"""Callback for a click on 'delete' in the context menu.
+        The deletion may target a file or a folder
+
+        Parameters
+        ----------
+        evt : wx._core.CommandEvent
+
+        """
+        confirm_dialog = wx.MessageDialog(self,
+                                          "Confirm deletion?",
+                                          caption="Deletion confirmation",
+                                          style=wx.OK | wx.CANCEL | wx.CENTRE | wx.ICON_QUESTION)
+        choice = confirm_dialog.ShowModal()
+
+        if choice == wx.ID_OK:
+            if isfile(self.right_click_location):
+                remove(self.right_click_location)
+            elif isdir(self.right_click_location):
+                from shutil import rmtree
+                rmtree(self.right_click_location)
+            else:
+                raise ValueError
+
+        confirm_dialog.Destroy()
+        self.set_root_dir(self.model.root_folder)
 
     def on_root_folder_changed(self, evt):
         r"""Callback for a change of root folder"""
