@@ -69,11 +69,11 @@ class CodePanel(wx.Panel):
 
     def on_save_button(self, evt):
         r"""Callback for a click on the 'save parameters' button"""
-        self.save_()
+        self.save_refresh()
 
     def on_ctrl_s(self, evt):
         r"""Callback for a CTRL + S key combination"""
-        self.save_()
+        self.save_refresh()
 
     def save_(self):
         r"""Write the parameters - i.e. save the modifications"""
@@ -96,9 +96,16 @@ class CodePanel(wx.Panel):
             f.write(self.file_editor.GetText())
 
         self.save_button.Disable()
+
         self.file_editor.initial_content = self.file_editor.GetText()
+
         # refresh all views
+        # self.model.set_selected(self.file_editor.filepath)
+
+    def save_refresh(self):
+        self.save_()
         self.model.set_selected(self.file_editor.filepath)
+
 
 faces = {
     'times': 'Times New Roman',
@@ -120,7 +127,8 @@ class Editor(wx.stc.StyledTextCtrl):
         self.model.observe("selected_changed", self.on_selected_changed)
         self.model.observe("root_folder_changed", self.on_root_folder_changed)
         # self.save_button = wx.Button(self, wx.ID_ANY, "Save code")
-        self.initial_content = "".encode('utf-8')
+        # self.initial_content = "".encode('utf-8')
+        self.initial_content = ""
         self.filepath = None
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetTabWidth(4)
@@ -268,6 +276,22 @@ class Editor(wx.stc.StyledTextCtrl):
 
         logger.debug("Selection changed")
 
+        # Warn the user of unsaved changes and offer an opportunity to save
+        if self.has_been_modified():
+            from os.path import basename
+            unsaved_changes_dialog = \
+                wx.MessageDialog(self,
+                                 "Save changes to file %s?" % basename(self.filepath),
+                                 caption="Unsaved changes",
+                                 style=wx.OK | wx.CANCEL | wx.CENTRE | wx.ICON_WARNING)
+            choice_save = unsaved_changes_dialog.ShowModal()
+
+            if choice_save == wx.ID_OK:
+                self.GetParent().save_()
+            unsaved_changes_dialog.Destroy()
+        else:
+            pass
+
         sel = self.model.selected
         ext = splitext(sel)[1].lower()
         logger.info("File extension : %s" % ext)
@@ -304,7 +328,9 @@ class Editor(wx.stc.StyledTextCtrl):
                                  "handled by the code panel" % ext)
 
         else:  # a directory is selected
-            self.SetText("Not a file")
+            not_a_file_str = "Not a file"
+            self.SetText(not_a_file_str)
+            self.initial_content = not_a_file_str
             self.Disable()
 
         self.Layout()
@@ -314,6 +340,7 @@ class Editor(wx.stc.StyledTextCtrl):
     def on_root_folder_changed(self, evt):
         r"""Callback for a change of root folder"""
         self.SetText("")
+        self.initial_content = ""
         self.Disable()
 
     def load_file(self, filepath):
@@ -360,14 +387,13 @@ class Editor(wx.stc.StyledTextCtrl):
     def has_been_modified(self):
         """True if the current content is different from the content
         when a file was loaded"""
-        if self.initial_content == self.GetText().encode('utf-8'):
+        if str.encode(self.initial_content) == self.GetText().encode('utf-8'):
             return False
         else:
             return True
 
     def onUpdateUI(self, evt):
         """Update the user interface"""
-
         if self.has_been_modified():
             self.save_button.Enable()
         else:

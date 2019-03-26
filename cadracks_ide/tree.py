@@ -137,7 +137,6 @@ class Tree(wx.lib.agw.customtreectrl.CustomTreeCtrl):
             menu.Destroy()
             # auto update of tree display after modifications
 
-
     def new_file(self, evt):
         r"""Callback for a click on 'new file' in the context menu
 
