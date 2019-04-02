@@ -1,5 +1,6 @@
 /.idea
 cadracks-ide.log
+bin/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
