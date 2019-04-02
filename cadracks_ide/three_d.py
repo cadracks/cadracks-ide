@@ -1,5 +1,22 @@
 # coding: utf-8
 
+# Copyright 2018-2019 Guillaume Florent
+
+# This file is part of cadracks-ide.
+#
+# cadracks-ide is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# cadracks-ide is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with cadracks-ide.  If not, see <https://www.gnu.org/licenses/>.
+
 r"""3D visualization of geometry"""
 
 from __future__ import division
