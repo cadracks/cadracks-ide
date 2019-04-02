@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+r"""Command line launch of the CadRacks IDE UI"""
+
+import cadracks_ide.cadracks_ide_ui
+
+cadracks_ide.cadracks_ide_ui.main()
